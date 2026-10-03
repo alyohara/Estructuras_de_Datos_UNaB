@@ -1,0 +1,13 @@
+# artefacto generado por tools/dump-labs.js
+tools/labs.json
+
+# sistema operativo / editores
+Thumbs.db
+.DS_Store
+*.swp
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
