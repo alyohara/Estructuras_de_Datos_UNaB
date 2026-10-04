@@ -471,7 +471,8 @@ EDD.buildCatalog = function () {
       { href: 'u9/index.html', label: 'U9' },
       { href: 'u10/index.html', label: 'U10' },
       { href: 'tp/index.html', label: 'TP' },
-      { href: 'exams/index.html', label: 'Exámenes' }
+      { href: 'exams/index.html', label: 'Exámenes' },
+      { href: 'downloads/index.html', label: 'Descargas' }
     ],
 
     mount: function (opts) {
@@ -479,7 +480,7 @@ EDD.buildCatalog = function () {
       Progress.load();
 
       /* Si la página se vuelve a renderizar (hashchange, etc.) limpiamos el shell anterior. */
-      U.qsa('nav.topnav').forEach(function (n) { n.parentNode.removeChild(n); });
+      U.qsa('header.topbar').forEach(function (n) { n.parentNode.removeChild(n); });
       U.qsa('footer.site').forEach(function (n) { n.parentNode.removeChild(n); });
       var oldLayout = U.qs('.layout');
       if (oldLayout) {
@@ -490,31 +491,61 @@ EDD.buildCatalog = function () {
         oldLayout.parentNode.removeChild(oldLayout);
       }
 
-      // --- Barra superior ---
-      var nav = U.el('nav', { class: 'topnav' }, U.el('div', { class: 'topnav-inner' }, [
-        U.el('a', { class: 'brand', href: U.link('index.html') }, [
-          U.el('span', { class: 'logo', text: 'ED' }),
-          U.el('span', { text: 'Estructuras de Datos' })
-        ]),
-        U.el('div', { class: 'spacer' }),
-        U.el('div', { class: 'topnav-links' }, EDD.shell.SECTIONS.map(function (s) {
-          return U.el('a', { href: U.link(s.href), 'data-nav': s.href, text: s.label });
-        })),
-        U.el('button', { class: 'icon-btn', title: 'Cambiar tema', text: '◐', onclick: function () { EDD.shell.toggleTheme(); } }),
-        U.el('button', { class: 'icon-btn', title: 'Mi progreso', text: '◔', onclick: function () { EDD.shell.openProgressModal(); } })
-      ]));
-      document.body.insertBefore(nav, document.body.firstChild);
+      document.body.classList.add('scanlines');
 
-      /* Marca el link activo comparando el final de la ruta, para que funcione
-         tanto en la raíz del dominio como dentro de un subdirectorio. */
-      var path = location.pathname.replace(/\/+$/, '');
-      U.qsa('[data-nav]').forEach(function (a) {
-        var href = a.getAttribute('data-nav');
-        var activo = href === 'index.html'
-          ? !/\/[^/]+\/index\.html$/.test(path)      // index.html del sitio, no el de una subcarpeta
-          : path.slice(-href.length) === href;
-        if (activo) a.classList.add('active');
+      /* Sección activa: se compara el final de la ruta para que funcione tanto
+         en la raíz del dominio como dentro de un subdirectorio (GitHub Pages).
+         La URL de una carpeta puede terminar en "/" o en "/index.html". */
+      var path = location.pathname.replace(/index\.html$/, '').replace(/\/+$/, '');
+      var activeHref = 'index.html';
+      EDD.shell.SECTIONS.forEach(function (s) {
+        var dir = s.href.replace(/\/?index\.html$/, '');
+        if (dir && path.slice(-(dir.length + 1)) === '/' + dir) activeHref = s.href;
       });
+      var cwd = '~/edd' + (activeHref === 'index.html' ? '' : '/' + activeHref.replace(/\/index\.html$/, ''));
+
+      var themeBtn = U.el('button', { class: 'term-btn', type: 'button', title: 'Cambiar tema (tecla m)', onclick: function () { EDD.shell.toggleTheme(); } });
+      var progBtn = U.el('button', { class: 'term-btn', type: 'button', title: 'Mi progreso (tecla p)', onclick: function () { EDD.shell.openProgressModal(); } });
+      var net = U.el('span', { class: 'net' });
+      var clock = U.el('span', { class: 'clock', text: '--:--:--' });
+
+      var header = U.el('header', { class: 'topbar' }, U.el('div', { class: 'topbar-inner' }, [
+        U.el('div', { class: 'topbar-row' }, [
+          U.el('div', null, [
+            U.el('a', { class: 'brand', href: U.link('index.html'), html:
+              '<span class="prompt">student@unab</span>:<span class="path">' + cwd + '</span>$ ' +
+              '<strong>study-console</strong><span class="cursor">_</span>' }),
+            U.el('p', { class: 'subtitle', text: 'Estructuras de Datos // material de cursada' })
+          ]),
+          U.el('div', { class: 'system-status', 'aria-label': 'Estado del sitio' }, [net, clock, progBtn, themeBtn])
+        ]),
+        U.el('nav', { class: 'topnav-links', 'aria-label': 'Secciones del curso' }, EDD.shell.SECTIONS.map(function (s) {
+          return U.el('a', { href: U.link(s.href), 'data-nav': s.href, text: s.label, class: s.href === activeHref ? 'active' : '' });
+        }))
+      ]));
+      document.body.insertBefore(header, document.body.firstChild);
+
+      function paintStatus() {
+        var on = navigator.onLine !== false;
+        net.innerHTML = '<i class="dot ' + (on ? 'online' : 'offline') + '"></i> ' + (on ? 'ONLINE' : 'OFFLINE');
+        themeBtn.textContent = 'THEME: ' + (document.documentElement.getAttribute('data-theme') === 'light' ? 'LATTE' : 'MOCHA');
+        progBtn.textContent = 'PROGRESO: ' + Progress.stats().pct() + '%';
+      }
+      function tick() {
+        var d = new Date();
+        clock.textContent = [d.getHours(), d.getMinutes(), d.getSeconds()].map(function (n) { return (n < 10 ? '0' : '') + n; }).join(':');
+      }
+      paintStatus(); tick();
+      EDD.shell._paint = paintStatus;
+      EDD.shell._tick = tick;
+      if (!EDD.shell._wired) {
+        EDD.shell._wired = true;
+        setInterval(function () { EDD.shell._tick(); }, 1000);
+        global.addEventListener('online', function () { EDD.shell._paint(); });
+        global.addEventListener('offline', function () { EDD.shell._paint(); });
+        Progress.on(function () { EDD.shell._paint(); });
+        document.addEventListener('keydown', EDD.shell._onKey);
+      }
 
       // --- Sidebar (opcional) ---
       if (opts.toc && opts.toc.length) {
@@ -550,13 +581,15 @@ EDD.buildCatalog = function () {
       // --- Footer ---
       var f = U.qs('footer.site') || U.el('footer', { class: 'site' });
       f.className = 'site';
-      f.innerHTML = '<div class="wrap flex" style="justify-content:space-between">' +
-        '<div>Material interactivo de <strong>Estructuras de Datos</strong> — UNAB. ' +
-        'Material de estudio libre para uso académico.</div>' +
-        '<div class="flex" style="gap:14px">' +
-        '<a href="' + U.link('downloads/index.html') + '">Descargas</a>' +
-        '<a href="#" id="f-export">Exportar progreso</a>' +
-        '</div></div>';
+      f.innerHTML = '<div class="footer-inner">' +
+        '<span class="sig">EDD // UNaB</span>' +
+        '<span class="keys"><span><kbd>1</kbd>-<kbd>0</kbd> unidades</span><span><kbd>t</kbd> TP</span>' +
+        '<span><kbd>e</kbd> exámenes</span><span><kbd>d</kbd> descargas</span><span><kbd>p</kbd> progreso</span>' +
+        '<span><kbd>m</kbd> tema</span></span>' +
+        '<span class="flex" style="gap:14px">' +
+        '<a href="' + U.link('downloads/index.html') + '">DESCARGAS</a>' +
+        '<a href="#" id="f-export">EXPORTAR PROGRESO</a>' +
+        '</span></div>';
       document.body.appendChild(f);
       U.qs('#f-export', f).addEventListener('click', function (e) { e.preventDefault(); Progress.exportJSON(); });
     },
@@ -566,6 +599,24 @@ EDD.buildCatalog = function () {
       var next = cur === 'light' ? 'dark' : 'light';
       document.documentElement.setAttribute('data-theme', next);
       try { localStorage.setItem('edd.theme', next); } catch (e) {}
+      if (EDD.shell._paint) EDD.shell._paint();
+    },
+
+    _onKey: function (e) {
+      if (e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented) return;
+      var t = e.target, tag = t && t.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+      if (U.qs('.modal-bg')) return;
+      var k = e.key, href = null;
+      if (/^[1-9]$/.test(k)) href = 'u' + k + '/index.html';
+      else if (k === '0') href = 'u10/index.html';
+      else if (k === 'h') href = 'index.html';
+      else if (k === 't') href = 'tp/index.html';
+      else if (k === 'e') href = 'exams/index.html';
+      else if (k === 'd') href = 'downloads/index.html';
+      else if (k === 'p') { e.preventDefault(); EDD.shell.openProgressModal(); return; }
+      else if (k === 'm') { EDD.shell.toggleTheme(); return; }
+      if (href) { e.preventDefault(); location.href = U.link(href); }
     },
 
     openProgressModal: function () {
@@ -631,7 +682,6 @@ m.appendChild(btns);
   try {
     var th = localStorage.getItem('edd.theme');
     if (th) document.documentElement.setAttribute('data-theme', th);
-    else if (matchMedia && matchMedia('(prefers-color-scheme: light)').matches) document.documentElement.setAttribute('data-theme', 'light');
   } catch (e) {}
 
 })(window);

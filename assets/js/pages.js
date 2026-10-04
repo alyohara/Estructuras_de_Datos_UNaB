@@ -51,7 +51,7 @@ var st = P.stats();
     EDD.unidades.forEach(function (u) {
       var card = U.el('a', { class: 'card unit-card unit-' + u.num, href: U.link(u.id + '/index.html') }, [
         U.el('div', { class: 'flex between' }, [
-          U.el('span', { class: 'unit-num', text: 'U' + u.num }),
+          U.el('span', { class: 'unit-num', text: (u.num < 10 ? '0' : '') + u.num }),
           U.el('span', { class: 'chip', text: (u.viz || []).length + ' visualizador' + ((u.viz || []).length === 1 ? '' : 'es') })
         ]),
         U.el('h3', { class: 'mt-1', text: u.title }),
