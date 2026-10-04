@@ -1,7 +1,7 @@
-# Algoritmos y Estructuras de Datos — UNAB
+# Estructuras de Datos — UNAB
 
 Material de estudio en HTML/JS puro (sin build, sin dependencias) para la materia
-**Algoritmos y Estructuras de Datos** (UNAB).
+**Estructuras de Datos** (UNAB).
 
 Sitio publicado: <https://alyohara.github.io/Estructuras_de_Datos_UNaB/>
 

@@ -551,7 +551,7 @@ EDD.buildCatalog = function () {
       var f = U.qs('footer.site') || U.el('footer', { class: 'site' });
       f.className = 'site';
       f.innerHTML = '<div class="wrap flex" style="justify-content:space-between">' +
-        '<div>Material interactivo de <strong>Algoritmos y Estructuras de Datos</strong> — UNAB. ' +
+        '<div>Material interactivo de <strong>Estructuras de Datos</strong> — UNAB. ' +
         'Material de estudio libre para uso académico.</div>' +
         '<div class="flex" style="gap:14px">' +
         '<a href="' + U.link('downloads/index.html') + '">Descargas</a>' +

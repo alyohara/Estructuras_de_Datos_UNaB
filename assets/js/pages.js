@@ -27,7 +27,7 @@
     P.load();
 
     main.appendChild(U.el('div', { class: 'eyebrow', text: 'UNAB' }));
-    main.appendChild(U.el('h1', { text: 'Algoritmos y Estructuras de Datos' }));
+    main.appendChild(U.el('h1', { text: 'Estructuras de Datos' }));
     main.appendChild(U.el('p', { class: 'lead', text: 'Recorré las ' + EDD.unidades.length + ' unidades con teoría, visualizadores animados, laboratorios de Python que corren en el navegador, los trabajos prácticos y los exámenes.' }));
 
     /* Acciones */
