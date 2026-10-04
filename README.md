@@ -3,7 +3,7 @@
 Material de estudio en HTML/JS puro (sin build, sin dependencias) para la materia
 **Algoritmos y Estructuras de Datos** (UNAB).
 
-Sitio publicado: <https://alyohara.github.io/Algoritmos_y_Estructuras_de_Datos_UNaB/>
+Sitio publicado: <https://alyohara.github.io/Estructuras_de_Datos_UNaB/>
 
 Todo el contenido vive en `web/`. Los datos (teoría, quizzes, TP, exámenes) están en
 archivos `.js` con formato objeto, así que no hay paso de compilación: se edita y se
